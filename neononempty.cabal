@@ -1,0 +1,29 @@
+cabal-version:      2.2
+name:               neononempty
+version:            1.0.0
+synopsis:           NonEmpty, but which shows like a list
+homepage:           https://github.com/414owen/neononempty
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Owen Shepherd
+maintainer:         owen@owen.cafe
+category:           Data
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+
+common warnings
+  ghc-options: -Wall
+
+source-repository head
+  type:     git
+  location: https://github.com/414owen/neononempty.git
+
+library
+  import:           warnings
+  exposed-modules:  Data.List.NeoNonEmpty
+  -- other-modules:
+  -- other-extensions:
+  build-depends:    base ^>=4.16.4.0
+                  , base-compat-batteries
+  hs-source-dirs:   src
+  default-language: Haskell98
