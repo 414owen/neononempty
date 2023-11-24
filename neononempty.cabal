@@ -23,7 +23,7 @@ library
   exposed-modules:  Data.List.NeoNonEmpty
   -- other-modules:
   -- other-extensions:
-  build-depends:    base ^>=4.16.4.0
+  build-depends:    base >= 4.8.0
                   , base-compat-batteries
   hs-source-dirs:   src
   default-language: Haskell98
