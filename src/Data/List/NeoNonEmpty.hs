@@ -37,6 +37,11 @@ Removed functions:
   * 'NE.:|'     (use fromCons)
 
 
+Changed functions:
+
+  * 'uncons'
+
+
 Replaced functions:
 
   * s/(!!)/(!?)/
@@ -160,7 +165,6 @@ import Prelude
 import Control.Applicative             (Alternative)
 import Control.Monad.Fix               (MonadFix)
 import Control.Monad.Zip               (MonadZip)
-import Data.Bifunctor                  (second)
 import Data.Data                       (Data)
 import Data.Foldable1.Compat           (Foldable1)
 import Data.Functor.Classes            (Eq1, Ord1, Read1, Show1)
@@ -307,9 +311,9 @@ cons :: a -> NonEmpty a -> NonEmpty a
 cons el = onUnderlying (NE.cons el)
 
 -- | Produces the first element of the nonempty stream,
--- and a stream of the remaining elements, if any.
-uncons :: NonEmpty a -> (a, Maybe (NonEmpty a))
-uncons = second Exts.coerce . NE.uncons . toNonEmpty
+-- and a stream of the remaining elements.
+uncons :: NonEmpty a -> (a, [a])
+uncons (NonEmpty (x NE.:| xs)) = (x, xs)
 
 -- | Dual of 'foldr', see 'List.unfoldr'.
 unfoldr :: (a -> (b, Maybe a)) -> a -> NonEmpty b
@@ -650,15 +654,29 @@ groupAllWith1 f = onUnderlying (NE.groupAllWith1 f)
 
 -- * Sublist predicates
 
+-- | Returns True if the first argument is a prefix of the second.
+--
+-- >>> isPrefixOf [1, 2, 3] [1, 2, 3, 4, 5]
+-- True
+-- >>> isPrefixOf "abc" "defghi"
+-- False
+-- >>> isPrefixOf "abc" ""
+-- False
 isPrefixOf :: Eq a => [a] -> NonEmpty a -> Bool
 isPrefixOf els = NE.isPrefixOf els . toNonEmpty
 
 
 -- * "Set" operations
 
+-- | Removes duplicate elements from a list. In particular, it keeps only
+-- the first occurrence of each element. (The name nub means 'essence'.)
+-- It is a special case of nubBy, which allows the programmer to supply
+-- their own inequality test.
 nub :: Eq a => NonEmpty a -> NonEmpty a 
 nub = onNonEmpty NE.nub
 
+-- | Behaves just like nub, except it uses a user-supplied equality
+-- predicate instead of the overloaded '==' function.
 nubBy :: (a -> a -> Bool) -> NonEmpty a -> NonEmpty a 
 nubBy f = onNonEmpty (NE.nubBy f)
 
@@ -666,15 +684,26 @@ nubBy f = onNonEmpty (NE.nubBy f)
 -- * Indexing streams
 
 infixl 9 !?
+
+-- | xs !! n returns the element of the stream xs at index n, if present.
+-- Note that the head of the stream has index 0.
 (!?) :: NonEmpty a -> Int -> Maybe a
 (!?) l n
   | n < 0 = Nothing
-  | otherwise = listToMaybe (List.drop n (toList l))
+  | otherwise = listToMaybe $ List.drop n $ toList l
 
 -- * Zipping streams
 
+-- | \(\mathcal{O}(\min(m,n))\).
+-- Takes two streams and produces a stream of corresponding pairs.
+--
+-- >>> zip [1, 2] ['a', 'b']
+-- [(1, 'a'),(2, 'b')]
 zip :: forall a b. NonEmpty a -> NonEmpty b -> NonEmpty (a, b) 
 zip l1 l2 = Exts.coerce @(NE.NonEmpty (a, b)) $ NE.zip (Exts.coerce l1) (Exts.coerce l2)
 
+-- | \(\mathcal{O}(\min(m,n))\).
+-- Generalises zip by zipping with the provided function, instead of
+-- a tupling function.
 zipWith :: forall a b c. (a -> b -> c) -> NonEmpty a -> NonEmpty b -> NonEmpty c 
 zipWith f l1 l2 = Exts.coerce @(NE.NonEmpty c) $ NE.zipWith f (Exts.coerce l1) (Exts.coerce l2)
