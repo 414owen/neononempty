@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -167,7 +168,9 @@ import Control.Applicative             (Alternative)
 import Control.Monad.Fix               (MonadFix)
 import Control.Monad.Zip               (MonadZip)
 import Data.Data                       (Data)
-import Data.Foldable1.Compat           (Foldable1)
+#if MIN_VERSION_base(4,18,0)
+import Data.Foldable1                  (Foldable1)
+#endif
 import Data.Functor.Classes            (Eq1, Ord1, Read1, Show1)
 import Data.Maybe                      (fromJust, listToMaybe)
 import GHC.Generics                    (Generic, Generic1)
@@ -175,7 +178,11 @@ import Text.Read                       (Read(..))
 
 import qualified Data.Foldable             as Foldable
 import qualified Data.List                 as List
+#if (MIN_VERSION_base_compat(0,10,1))
 import qualified Data.List.NonEmpty.Compat as NE
+#else
+import qualified Data.List.NonEmpty        as NE
+#endif
 import qualified GHC.Exts                  as Exts
 
 
@@ -205,7 +212,9 @@ newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
     , MonadFix
     , MonadZip
     , Foldable
+#if MIN_VERSION_base(4,18,0)
     , Foldable1
+#endif
     , Eq1
     , Ord1
     , Read1
@@ -343,6 +352,7 @@ reverse = onNonEmpty NE.reverse
 inits :: Foldable f => f a -> NonEmpty [a] 
 inits = unsafeFromList . List.inits . Foldable.toList
 
+
 -- | Produces all the nonempty prefixes of a nonempty stream, starting with the shortest.
 --
 -- >>> inits1 [1,2,3]
@@ -351,7 +361,11 @@ inits = unsafeFromList . List.inits . Foldable.toList
 -- >>> inits1 [1]
 -- [[1]]
 inits1 :: forall a. NonEmpty a -> NonEmpty (NonEmpty a) 
+# if (MIN_VERSION_base(4,18,0)) || (MIN_VERSION_base_compat(0,13,1))
 inits1 = onUnderlying @_ @(NE.NonEmpty (NE.NonEmpty a)) NE.inits1
+#else
+inits1 = unsafeFromList . List.map unsafeFromList . List.tail . List.inits . toList
+# endif
 
 -- | Produces all the suffixes of a stream, starting with the longest.
 -- The result is 'NonEmpty' because the result always contains the empty list as
@@ -376,9 +390,11 @@ tails = fromNonEmpty . NE.tails
 -- >>> tails1 [1]
 -- [[1]]
 tails1 :: forall a. NonEmpty a -> NonEmpty (NonEmpty a) 
+# if (MIN_VERSION_base(4,18,0)) || (MIN_VERSION_base_compat(0,13,1))
 tails1 = onUnderlying @_ @(NE.NonEmpty (NE.NonEmpty a)) NE.tails1
-
--- base-compat added `append`, `appendList`, and `prependList`
+#else
+tails1 = unsafeFromList . List.map unsafeFromList . List.init . List.tails . toList
+#endif
 
 -- | A monomorphic version of <> for 'NonEmpty'.
 --
