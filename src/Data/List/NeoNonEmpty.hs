@@ -204,6 +204,7 @@ instance Read a => Read (NonEmpty a) where
 
 -- * Construction
 
+-- | A list with one or more elements.
 newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
   deriving (Generic, Generic1, Data)
   deriving
