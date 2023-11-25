@@ -91,8 +91,8 @@ module Data.List.NeoNonEmpty
   , intersperse
   , scanl
   , scanl'
-  , scanr
   , scanl1
+  , scanr
   , scanr1
   , transpose
   , sortBy
@@ -458,6 +458,14 @@ scanl f initial els = fromNonEmpty $ NE.scanl f initial (Foldable.toList els)
 scanl' :: Foldable f => (b -> a -> b) -> b -> f a -> NonEmpty b 
 scanl' f initial els = unsafeFromList $ List.scanl' f initial (Foldable.toList els)
 
+-- | scanl1 is a variant of scanl that has no starting value argument:
+--
+-- @
+-- scanl1 f [x1, x2, ...] == [x1, x1 `f` x2, x1 `f` (x2 `f` x3), ...]
+-- @
+scanl1 :: (a -> a -> a) -> NonEmpty a -> NonEmpty a
+scanl1 f = onUnderlying (NE.scanl1 f)
+
 -- | Right-to-left dual of scanl. Note that the order of parameters
 -- on the accumulating function are reversed compared to scanl.
 -- Also note that
@@ -476,14 +484,6 @@ scanl' f initial els = unsafeFromList $ List.scanl' f initial (Foldable.toList e
 -- [98,-97,99,-96,100]
 scanr :: Foldable f => (a -> b -> b) -> b -> f a -> NonEmpty b 
 scanr f initial els = fromNonEmpty $ NE.scanr f initial els
-
--- | scanl1 is a variant of scanl that has no starting value argument:
---
--- @
--- scanl1 f [x1, x2, ...] == [x1, x1 `f` x2, x1 `f` (x2 `f` x3), ...]
--- @
-scanl1 :: (a -> a -> a) -> NonEmpty a -> NonEmpty a
-scanl1 f = onUnderlying (NE.scanl1 f)
 
 -- | scanr1 is a variant of scanr that has no starting value argument.
 --
