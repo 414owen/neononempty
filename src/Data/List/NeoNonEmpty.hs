@@ -35,6 +35,7 @@ Removed functions:
   * 'NE.unzip'  (not nonempty-specific)
   * 'NE.unfold' (deprecated)
   * 'NE.:|'     (use fromCons)
+  * 'NE.xor'    (seemed out of place)
 
 
 Changed functions:
