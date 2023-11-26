@@ -145,7 +145,7 @@ module Data.List.NeoNonEmpty
   -- * Sublist predicates
   , isPrefixOf
 
-  -- * "Set" operations
+  -- * Set operations
   , nub
   , nubBy
 
@@ -755,7 +755,7 @@ isPrefixOf :: Eq a => [a] -> NonEmpty a -> Bool
 isPrefixOf els = NE.isPrefixOf els . toNonEmpty
 
 
--- * "Set" operations
+-- * Set operations
 
 -- | Removes duplicate elements from a list. In particular, it keeps only
 -- the first occurrence of each element. (The name nub means 'essence'.)
