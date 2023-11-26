@@ -1,6 +1,6 @@
 cabal-version:      2.2
 name:               neononempty
-version:            1.0.0
+version:            1.1.0
 synopsis:           NonEmpty lists that look [more, like, this]
 homepage:           https://github.com/414owen/neononempty
 license:            BSD-3-Clause
