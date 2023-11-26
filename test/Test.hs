@@ -4,7 +4,7 @@ module Main
   ( main
   ) where
 
-import Hedgehog (Property, property, forAll, (===))
+import Hedgehog (Property, property, forAll, (===), Gen)
 import Test.Tasty (defaultMain, TestTree, testGroup)
 
 import qualified Data.List.NeoNonEmpty as NNE
@@ -17,10 +17,24 @@ import qualified Test.Tasty.Hedgehog as H
 main :: IO ()
 main = defaultMain tests
 
+genNonEmpty :: Gen (NNE.NonEmpty Char)
+genNonEmpty = NNE.fromNonEmpty <$> Gen.nonEmpty (Range.linear 0 100) Gen.alpha
+
 againstNonEmpty :: (Show b, Eq b) => (NE.NonEmpty Char -> b) -> (NNE.NonEmpty Char -> b) -> Property
 againstNonEmpty f g = property $ do
-  xs <- forAll $ Gen.nonEmpty (Range.linear 0 100) Gen.alpha
-  f xs === g (NNE.fromNonEmpty xs)
+  xs <- forAll genNonEmpty
+  f (NNE.toNonEmpty xs) === g xs
+
+snocOne :: Property
+snocOne = property $ do
+  x <- forAll Gen.alpha
+  NNE.unsnoc (NNE.singleton x) === ([], x)
+
+snocUnsnoc :: Property
+snocUnsnoc = property $ do
+  x <- forAll Gen.alpha
+  xs <- forAll genNonEmpty
+  NNE.unsnoc (NNE.snoc xs x) === (NNE.toList xs, x)
 
 tests :: TestTree
 tests = testGroup "hedgehog properties"
@@ -45,10 +59,19 @@ tests = testGroup "hedgehog properties"
   , H.testProperty "init" $ againstNonEmpty NE.init NNE.init
   , H.testProperty "cons" $ property $ do
       x <- forAll Gen.alpha
-      xs <- forAll $ Gen.nonEmpty (Range.linear 0 100) Gen.alpha
-      NNE.toList (NNE.cons x $ NNE.fromNonEmpty xs) === NE.toList (x NE.:| NE.toList xs)
+      xs <- forAll genNonEmpty
+      NNE.toList (NNE.cons x xs) === NE.toList (x NE.:| NNE.toList xs)
+      NNE.toList (x NNE.:| NNE.toList xs) === NE.toList (x NE.:| NNE.toList xs)
   , H.testProperty "uncons" $ property $ do
       x <- forAll Gen.alpha
       xs <- forAll $ Gen.nonEmpty (Range.linear 0 100) Gen.alpha
       NNE.toList (NNE.cons x $ NNE.fromNonEmpty xs) === NE.toList (x NE.:| NE.toList xs)
+  , H.testProperty "snocOne" snocOne
+  , H.testProperty "snoc/unsnoc" snocUnsnoc
+  , H.testProperty "(!?)" $ property $ do
+      ind <- forAll $ Gen.int $ Range.linear 0 10
+      xs <- forAll genNonEmpty
+      case xs NNE.!? ind of
+        Just a ->  a === (NNE.toList xs !! ind)
+        Nothing -> pure ()
   ]

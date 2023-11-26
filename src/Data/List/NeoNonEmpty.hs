@@ -2,7 +2,6 @@
 {-# LANGUAGE DerivingVia         #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
@@ -11,6 +10,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE Trustworthy         #-}
 {-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE PatternSynonyms #-}
 
 {-|
 NonEmpty - Like base's NonEmpty but with:
@@ -26,10 +26,18 @@ Added functions:
   * `scanl'`
   * 'sortOn'
   * 'fromCons'
+
   * 'groupAll'
   * 'groupAllBy'
   * 'groupAll1'
   * 'groupAllBy1'
+
+  * 'snoc'
+  * 'unsnoc'
+
+  * 'foldl1'   -- this family is present in base's 'Foldable1' from >= 4.18.0.0
+  * `foldl1'`
+  * 'foldr1'
 
 Removed functions:
 
@@ -52,7 +60,8 @@ Replaced functions:
 module Data.List.NeoNonEmpty
   (
   -- * Construction
-    NonEmpty(..)
+    NonEmpty
+  , pattern (:|)
   , singleton
   , fromCons
 
@@ -75,6 +84,8 @@ module Data.List.NeoNonEmpty
   , init
   , cons
   , uncons
+  , snoc
+  , unsnoc
   , unfoldr
   , sort
   , reverse
@@ -89,6 +100,9 @@ module Data.List.NeoNonEmpty
   -- * Stream transformations
   , map
   , intersperse
+  , foldl1
+  , foldl1'
+  , foldr1
   , scanl
   , scanl'
   , scanl1
@@ -167,12 +181,14 @@ import Prelude
 import Control.Applicative             (Alternative)
 import Control.Monad.Fix               (MonadFix)
 import Control.Monad.Zip               (MonadZip)
+import Data.Bifunctor                  (first)
 import Data.Data                       (Data)
 #if MIN_VERSION_base(4,18,0)
 import Data.Foldable1                  (Foldable1)
 #endif
 import Data.Functor.Classes            (Eq1, Ord1, Read1, Show1)
 import Data.Maybe                      (fromJust, listToMaybe)
+import Data.Tuple                      (swap)
 import GHC.Generics                    (Generic, Generic1)
 import Text.Read                       (Read(..))
 
@@ -227,6 +243,10 @@ newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
     , Ord
     , Semigroup
     ) via (NE.NonEmpty a)
+
+pattern (:|) :: a -> [a] -> NonEmpty a
+pattern x :| xs <- NonEmpty (x NE.:| xs) where
+  x :| xs = NonEmpty (x NE.:| xs)
 
 -- | Construct a NonEmpty list from a single element.
 singleton :: a -> NonEmpty a
@@ -325,6 +345,14 @@ cons el = onUnderlying (NE.cons el)
 -- and a stream of the remaining elements.
 uncons :: NonEmpty a -> (a, [a])
 uncons (NonEmpty (x NE.:| xs)) = (x, xs)
+
+-- | Append an element to the back of a nonempty stream.
+snoc :: NonEmpty a -> a -> NonEmpty a
+snoc l el = l `append` singleton el
+
+-- | Produces all elements up to the last element, and the last element
+unsnoc :: forall a. NonEmpty a -> ([a], a)
+unsnoc = first List.reverse . swap . uncons . reverse
 
 -- | Dual of 'foldr', see 'List.unfoldr'.
 unfoldr :: (a -> (b, Maybe a)) -> a -> NonEmpty b
@@ -445,6 +473,21 @@ map f = onUnderlying (NE.map f)
 -- [1]
 intersperse :: a -> NonEmpty a -> NonEmpty a 
 intersperse el = onUnderlying (NE.intersperse el)
+
+-- | Left-associative fold, lazy in the accumulator. See 'List.foldl'.
+foldl1 :: (a -> a -> a) -> NonEmpty a -> a
+foldl1 f l = let (x, xs) = uncons l in
+  List.foldl f x xs
+
+-- | Left-associative fold, strict in the accumulator. See `List.foldl'`.
+foldl1' :: (a -> a -> a) -> NonEmpty a -> a
+foldl1' f l = let (x, xs) = uncons l in
+  List.foldl' f x xs
+
+-- | Left-associative fold, strict in the accumulator. See `List.foldl'`.
+foldr1 :: (a -> a -> a) -> NonEmpty a -> a
+foldr1 f l = let (xs, x) = unsnoc l in
+  List.foldr f x xs
 
 -- | scanl is similar to foldl, but returns a stream of successive
 -- reduced values from the left:
@@ -649,7 +692,7 @@ group1 = onUnderlying @_ @(NE.NonEmpty (NE.NonEmpty a)) NE.group1
 -- | Similar to 'group1', but sorts the input first so that each
 -- equivalence class has, at most, one list in the output.
 groupAll1 :: Ord a => NonEmpty a -> [NonEmpty a]
-groupAll1 = groupBy (==) . sort
+groupAll1 = group . sort
 
 -- | Similar to 'group1', but uses the provided equality predicate instead of '=='.
 groupBy1 :: (a -> a -> Bool) -> NonEmpty a -> NonEmpty (NonEmpty a)
