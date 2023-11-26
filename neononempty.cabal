@@ -47,10 +47,11 @@ library
   default-language: Haskell98
 
 test-suite spec
+  import:             warnings
   type:               exitcode-stdio-1.0
-  ghc-options:        -Wall
   hs-source-dirs:     test
   main-is:            Test.hs
+  default-language:   Haskell98
   build-depends:      base >= 4.12 && < 5
                     , tasty >= 1.0 && < 2
                     , tasty-hedgehog >= 1.0 && < 2
