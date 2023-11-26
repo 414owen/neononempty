@@ -62,6 +62,10 @@ tests = testGroup "hedgehog properties"
       xs <- forAll genNonEmpty
       NNE.toList (NNE.cons x xs) === NE.toList (x NE.:| NNE.toList xs)
       NNE.toList (x NNE.:| NNE.toList xs) === NE.toList (x NE.:| NNE.toList xs)
+      let x' NNE.:| xs' = xs
+      let y' : ys = NNE.toList xs
+      x' === y'
+      xs' === ys
   , H.testProperty "uncons" $ property $ do
       x <- forAll Gen.alpha
       xs <- forAll $ Gen.nonEmpty (Range.linear 0 100) Gen.alpha

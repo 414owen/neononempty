@@ -42,8 +42,7 @@ Added functions:
 Removed functions:
 
   * 'NE.unzip'  (not nonempty-specific)
-  * 'NE.unfold' (deprecated)
-  * 'NE.:|'     (use fromCons)
+  * 'NE.unfold' (deprecated, use unfoldr)
   * 'NE.xor'    (seemed out of place)
 
 
@@ -244,6 +243,7 @@ newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
     , Semigroup
     ) via (NE.NonEmpty a)
 
+{-# COMPLETE (:|) #-}
 pattern (:|) :: a -> [a] -> NonEmpty a
 pattern x :| xs <- NonEmpty (x NE.:| xs) where
   x :| xs = NonEmpty (x NE.:| xs)
