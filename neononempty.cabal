@@ -37,6 +37,12 @@ description:
   .
   Now imagine this in various fields of a large compound structure, and you
   have two of them, and you're trying to find the difference.
+  .
+  >>> :set -XOverloadedLists
+  >>> aNonEmpty [1, 2, 3]
+  [1,2,3]
+  >>> read "[1, 2, 3]" :: NonEmpty Int
+  [1,2,3]
 
 common warnings
   ghc-options: -Wall
