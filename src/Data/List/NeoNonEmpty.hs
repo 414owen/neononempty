@@ -1,16 +1,16 @@
-{-# LANGUAGE CPP                 #-}
-{-# LANGUAGE DerivingVia         #-}
-{-# LANGUAGE DeriveDataTypeable  #-}
-{-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE Trustworthy         #-}
-{-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE Trustworthy                #-}
+{-# LANGUAGE RankNTypes                 #-}
+{-# LANGUAGE PatternSynonyms            #-}
 
 {-|
 NonEmpty - Like base's NonEmpty but with:
@@ -161,33 +161,36 @@ import Prelude
   ( Bool
   , Applicative(..)
   , Eq(..)
-  , Foldable
-  , Functor(..)
   , Int
   , Maybe(..)
   , Monad(..)
   , Ord(..)
   , Ordering(..)
-  , Semigroup
   , Show(..)
   , ($)
   , (.)
   , (++)
+  , error
   , fail
   , otherwise
   )
 
+import Data.Bool                       (not, (&&))
 import Control.Applicative             (Alternative)
 import Control.Monad.Fix               (MonadFix)
 import Control.Monad.Zip               (MonadZip)
 import Data.Bifunctor                  (first)
 import Data.Data                       (Data)
+import Data.Foldable                   (Foldable)
 #if MIN_VERSION_base(4,18,0)
 import Data.Foldable1                  (Foldable1)
 #endif
-import Data.Functor.Classes            (Eq1, Ord1, Read1, Show1)
-import Data.Maybe                      (fromJust, listToMaybe)
-import Data.Tuple                      (swap)
+import Data.Functor                    (Functor(..))
+import Data.Functor.Classes            (Eq1(..), Ord1(..), Read1(..), Show1(..))
+import Data.Function                   ((&))
+import Data.Maybe                      (listToMaybe)
+import Data.Tuple                      (swap, fst)
+import Data.Semigroup                  (Semigroup(..))
 import GHC.Generics                    (Generic, Generic1)
 import Text.Read                       (Read(..))
 
@@ -221,27 +224,50 @@ instance Read a => Read (NonEmpty a) where
 
 -- | A list with one or more elements.
 newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
-  deriving (Generic, Generic1, Data)
+  -- `stock` deriving strategy is used where possible,
+  -- `newtype` is fallen back on
   deriving
     ( Applicative
+    , Eq
     , Functor
+    , Generic
+    , Generic1
+    , Data
     , MonadFix
     , MonadZip
     , Foldable
 #if MIN_VERSION_base(4,18,0)
     , Foldable1
 #endif
+    , Ord
+#if MIN_VERSION_base(4,10,0)
     , Eq1
     , Ord1
     , Read1
     , Show1
+#endif
     , Monad
-    ) via NE.NonEmpty
-  deriving
-    ( Eq
-    , Ord
     , Semigroup
-    ) via (NE.NonEmpty a)
+    )
+
+#if !MIN_VERSION_base(4,10,0)
+instance Eq1 NonEmpty where
+  liftEq f (x :| xs) (y :| ys) = f x y && liftEq f xs ys
+
+instance Ord1 NonEmpty where
+  liftCompare f (x :| xs) (y :| ys) = case f x y of
+    LT -> LT
+    GT -> GT
+    EQ -> liftCompare f xs ys
+
+instance Read1 NonEmpty where
+  liftReadsPrec a b c s = liftReadsPrec a b c s
+    & List.filter (not . List.null . fst)
+    & fmap (first unsafeFromList)
+
+instance Show1 NonEmpty where
+  liftShowsPrec a b c = liftShowsPrec a b c . toList
+#endif
 
 {-# COMPLETE (:|) #-}
 -- | Construct a NonEmpty from an element and a list.
@@ -271,7 +297,8 @@ onNonEmpty = onUnderlying
 
 -- Unsafe. Not exported.
 unsafeFromList :: [a] -> NonEmpty a
-unsafeFromList = fromJust . fromList
+unsafeFromList [] = error "Tried to create a (Neo)NonEmpty list from an empty list"
+unsafeFromList (x : xs) = x :| xs
 
 -- Unsafe. Not exported.
 onList :: ([a] -> [b]) -> NonEmpty a -> NonEmpty b
