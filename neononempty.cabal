@@ -51,8 +51,8 @@ test-suite spec
   ghc-options:        -Wall
   hs-source-dirs:     test
   main-is:            Test.hs
-  build-depends:      base
-                    , tasty
-                    , tasty-hedgehog
-                    , hedgehog
-                    , neononempty
+  build-depends:      base >= 4.12 && < 5
+                    , tasty >= 1.0 && < 2
+                    , tasty-hedgehog >= 1.0 && < 2
+                    , hedgehog >= 1.0 && < 2
+                    , neononempty >= 1.0.0 && < 2
