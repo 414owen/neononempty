@@ -41,10 +41,10 @@ tests = testGroup "hedgehog properties"
   [ H.testProperty "length" $ againstNonEmpty NE.length NNE.length
   , H.testProperty "roundtrips singleton forwards" $ property $ do
       x <- forAll $ Gen.int $ Range.linear (-25) 25
-      NE.singleton x === NNE.toNonEmpty (NNE.singleton x)
+      x NE.:| [] === NNE.toNonEmpty (NNE.singleton x)
   , H.testProperty "roundtrips singleton backwards" $ property $ do
       x <- forAll $ Gen.int $ Range.linear (-25) 25
-      NNE.fromNonEmpty (NE.singleton x) === NNE.singleton x
+      NNE.fromNonEmpty (x NE.:| []) === NNE.singleton x
   , H.testProperty "NE.:| === NNE.fromCons forwards" $ property $ do
       x <- forAll Gen.alpha
       xs <- forAll $ Gen.list (Range.linear 0 100) Gen.alpha
