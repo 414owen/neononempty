@@ -244,6 +244,7 @@ newtype NonEmpty a = NonEmpty (NE.NonEmpty a)
     ) via (NE.NonEmpty a)
 
 {-# COMPLETE (:|) #-}
+-- | Construct a NonEmpty from an element and a list.
 pattern (:|) :: a -> [a] -> NonEmpty a
 pattern x :| xs <- NonEmpty (x NE.:| xs) where
   x :| xs = NonEmpty (x NE.:| xs)
