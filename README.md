@@ -1,6 +1,6 @@
 # NeoNonEmpty
 
-[![CI status badge](https://img.shields.io/github/actions/workflow/status/414owen/neononempty/haskell-ci.yml)](https://github.com/414owen/neononempty/actions/workflows/haskell-ci.yml) [![Hackage version badge](https://img.shields.io/hackage/v/neononempty)](https://hackage.haskell.org/package/neononempty) [![license](https://img.shields.io/github/license/414owen/neononempty)](https://github.com/414owen/neononempty/blob/master/LICENSE)
+<!-- [![CI status badge](https://img.shields.io/github/actions/workflow/status/414owen/neononempty/haskell-ci.yml)](https://github.com/414owen/neononempty/actions/workflows/haskell-ci.yml) [![Hackage version badge](https://img.shields.io/hackage/v/neononempty)](https://hackage.haskell.org/package/neononempty) [![license](https://img.shields.io/github/license/414owen/neononempty)](https://github.com/414owen/neononempty/blob/master/LICENSE) -->
 
 Like [NonEmpty](https://hackage.haskell.org/package/base-4.19.0.0/docs/Data-List-NonEmpty.html),
 but with a few changes:
