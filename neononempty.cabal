@@ -1,7 +1,7 @@
 cabal-version:      2.2
 name:               neononempty
 version:            1.0.0
-synopsis:           NonEmpty, but which shows like a list
+synopsis:           NonEmpty lists that look [more, like, this]
 homepage:           https://github.com/414owen/neononempty
 license:            BSD-3-Clause
 license-file:       LICENSE
@@ -22,10 +22,21 @@ description:
   in base.
   .
   It has a few differences from base's NonEmpty:
-  * It has @Show@ and @Read@ instance similar to that of normal lists
-  * It has a 100% safe API
-  * It has a few added/removed/changed functions (see @Data.List.NeoNonEmpty@'s module docs)
-  * New functions aren't tied to new versions of GHC/base
+  .
+      * It has @Show@ and @Read@ instance similar to that of normal lists
+      * It has a 100% safe API
+      * It has a few added\/removed\/updated functions (see @Data.List.NeoNonEmpty@'s module docs)
+      * New functions aren't tied to new versions of GHC/base
+  .
+  The show instance is the original raison d'être. When scanning textual data,
+  the brain can interpret uniformity more quickly. Which do you think is easier
+  to scan?
+  .
+  > x :| [y, z]
+  > [x, y, z]
+  .
+  Now imagine this in various fields of a large compound structure, and you
+  have two of them, and you're trying to find the difference.
 
 common warnings
   ghc-options: -Wall

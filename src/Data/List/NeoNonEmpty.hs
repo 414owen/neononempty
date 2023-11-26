@@ -10,14 +10,14 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE Trustworthy         #-}
 {-# LANGUAGE RankNTypes          #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PatternSynonyms     #-}
 
 {-|
 NonEmpty - Like base's NonEmpty but with:
 
   * 'Show' and 'Read' instance similar to `[]`
   * A completely safe API
-  * Extra utils
+  * added\/removed\/updated functions
 
 
 Added functions:
